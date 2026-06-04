@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>教师操作面板 — Vibe Coding</title>
+<style>
+  :root {
+    --primary: #6C5CE7;
+    --primary-dark: #5A4BD1;
+    --accent: #FF6B6B;
+    --accent-yellow: #FFD93D;
+    --green: #00B894;
+    --orange: #FDCB6E;
+    --red: #FF6B6B;
+    --bg: #F8F9FF;
+    --card: #FFFFFF;
+    --text: #2D3436;
+    --text-light: #636E72;
+    --radius: 16px;
+    --shadow: 0 4px 24px rgba(108,92,231,0.10);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  nav {
+    position: sticky; top:0; z-index:100;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(108,92,231,0.08);
+    padding: 0 24px;
+  }
+  nav .nav-inner {
+    max-width: 1200px; margin:0 auto;
+    display:flex; align-items:center; justify-content:space-between;
+    height: 64px;
+  }
+  nav .logo {
+    font-size: 22px; font-weight:800;
+    background: linear-gradient(135deg, var(--primary), #A29BFE);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+  nav .nav-links { display:flex; gap:8px; }
+  nav .nav-links a {
+    text-decoration:none; color: var(--text);
+    padding: 8px 18px; border-radius: 10px;
+    font-size: 15px; font-weight: 500;
+    transition: all 0.2s;
+  }
+  nav .nav-links a:hover { background: rgba(108,92,231,0.06); color: var(--primary); }
+  nav .nav-links a.active { color: var(--primary); font-weight:700; }
+
+  .page-header {
+    max-width: 1200px; margin:0 auto;
+    padding: 72px 24px 48px;
+    text-align: center;
+  }
+  .page-header .badge {
+    display:inline-block;
+    background: rgba(108,92,231,0.08);
+    color: var(--primary);
+    font-size: 14px; font-weight:600;
+    padding: 6px 18px; border-radius: 100px;
+    margin-bottom: 24px;
+  }
+  .page-header h1 { font-size: 44px; font-weight:900; letter-spacing: -0.5px; margin-bottom: 16px; }
+  .page-header .sub { font-size: 18px; color: var(--text-light); }
+
+  .container { max-width: 1100px; margin:0 auto; padding: 0 24px 80px; }
+
+  /* ── Tabs ── */
+  .tabs {
+    display:flex; gap:4px; margin-bottom: 40px;
+    background: var(--card); padding: 6px; border-radius: 14px;
+    box-shadow: var(--shadow);
+    overflow-x: auto;
+    position: sticky; top: 80px; z-index:50;
+  }
+  .tabs button {
+    padding: 12px 24px; border-radius: 10px; border:none;
+    background: transparent; font-size: 15px; font-weight:600;
+    cursor: pointer; white-space: nowrap;
+    color: var(--text-light); transition: all 0.2s;
+    font-family: inherit;
+  }
+  .tabs button.active { background: var(--primary); color:#fff; }
+  .tabs button:hover:not(.active) { background: rgba(108,92,231,0.06); }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ── Login Overlay ── */
+  .login-overlay {
+    position: fixed; inset: 0; z-index: 1000;
+    background: linear-gradient(135deg, #6C5CE7 0%, #A29BFE 50%, #FD79A8 100%);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .login-overlay.hidden { display:none; }
+  .login-card {
+    background: #fff; border-radius: 20px;
+    padding: 48px 40px; max-width: 400px; width: 90%;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.2);
+    text-align: center;
+  }
+  .login-card .login-icon { font-size: 48px; margin-bottom: 16px; }
+  .login-card h2 { font-size: 22px; font-weight:800; margin-bottom: 4px; }
+  .login-card .login-sub { font-size: 14px; color: #636E72; margin-bottom: 28px; }
+  .login-card input {
+    width: 100%; padding: 14px 18px; border-radius: 12px;
+    border: 2px solid #E8E8F0; font-size: 16px;
+    text-align: center; letter-spacing: 2px;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+    font-family: inherit;
+  }
+  .login-card input:focus { outline:none; border-color: #6C5CE7; }
+  .login-card .login-btn {
+    width: 100%; padding: 14px; border-radius: 12px; border:none;
+    background: #6C5CE7; color:#fff; font-size: 16px; font-weight:700;
+    cursor: pointer; margin-top: 12px; transition: all 0.2s;
+    font-family: inherit;
+  }
+  .login-card .login-btn:hover { background: #5A4BD1; }
+  .login-card .login-error {
+    color: #FF6B6B; font-size: 13px; font-weight:600;
+    margin-top: 10px; display:none;
+  }
+  .login-card .login-error.show { display:block; animation: shake 0.4s ease; }
+  @keyframes shake {
+    0%,100% { transform:translateX(0); }
+    25% { transform:translateX(-6px); }
+    75% { transform:translateX(6px); }
+  }
+  .login-card .login-hint {
+    margin-top: 20px; font-size: 12px; color: #B2BEC3;
+    line-height: 1.6;
+  }
+
+  /* ── Setup Cards ── */
+  .setup-grid {
+    display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+  }
+  .setup-card {
+    background: var(--card); border-radius: var(--radius);
+    padding: 28px; box-shadow: var(--shadow);
+    border: 1px solid rgba(108,92,231,0.06);
+  }
+  .setup-card h3 { font-size: 18px; font-weight:800; margin-bottom: 12px; display:flex; align-items:center; gap:10px; }
+  .setup-card .sc-icon { font-size: 24px; }
+  .setup-card ol { padding-left:20px; font-size: 14px; color: var(--text-light); }
+  .setup-card ol li { margin-bottom:6px; }
+  .setup-card .sc-warn {
+    margin-top: 12px; padding: 10px 14px;
+    background: rgba(253,203,110,0.15);
+    border-radius: 8px; font-size: 13px;
+    font-weight: 600; color: #B8801A;
+  }
+
+  /* ── Quick Checklist ── */
+  .check-section { margin-bottom: 40px; }
+  .check-section h2 {
+    font-size: 22px; font-weight:800;
+    padding: 16px 24px; background: var(--card);
+    border-radius: var(--radius) var(--radius) 0 0;
+    box-shadow: var(--shadow);
+    margin-bottom: 0;
+    display:flex; align-items:center; gap:10px;
+  }
+  .check-section .check-grid {
+    display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1px; background: #E8E8F0;
+    border-radius: 0 0 var(--radius) var(--radius);
+    overflow: hidden; box-shadow: var(--shadow);
+  }
+  .check-section .check-item {
+    background: var(--card); padding: 14px 20px;
+    font-size: 14px; display:flex; align-items:center; gap:10px;
+    cursor: pointer; user-select: none;
+    transition: background 0.15s;
+  }
+  .check-section .check-item:hover { background: #F8F9FF; }
+  .check-section .check-item .cb {
+    width: 20px; height: 20px; border-radius: 6px;
+    border: 2px solid #B2BEC3; flex-shrink: 0;
+    display:flex; align-items:center; justify-content:center;
+    transition: all 0.2s;
+  }
+  .check-section .check-item.done .cb {
+    background: var(--green); border-color: var(--green);
+  }
+  .check-section .check-item.done .cb::after {
+    content: "✓"; color:#fff; font-size:12px; font-weight:700;
+  }
+  .check-section .check-item.done .clabel { text-decoration: line-through; color: #B2BEC3; }
+
+  /* ── Alert Cards ── */
+  .alert { padding: 16px 20px; border-radius: 12px; margin-bottom: 20px; font-size: 14px; font-weight:600; }
+  .alert-warn { background: rgba(253,203,110,0.15); color: #B8801A; border: 1px solid rgba(253,203,110,0.3); }
+  .alert-info { background: rgba(9,132,227,0.08); color: #0984E3; border: 1px solid rgba(9,132,227,0.15); }
+  .alert-danger { background: rgba(255,107,107,0.08); color: #D63031; border: 1px solid rgba(255,107,107,0.2); }
+  .alert-success { background: rgba(0,184,148,0.08); color: #00B894; border: 1px solid rgba(0,184,148,0.15); }
+
+  /* ── Emergency Table ── */
+  .emergency-table {
+    width:100%; border-collapse:collapse;
+    background: var(--card); border-radius: var(--radius);
+    overflow:hidden; box-shadow: var(--shadow);
+  }
+  .emergency-table th {
+    background: var(--red); color:#fff;
+    padding: 12px 20px; text-align:left; font-size: 14px; font-weight:600;
+  }
+  .emergency-table td {
+    padding: 14px 20px; border-bottom: 1px solid rgba(0,0,0,0.04);
+    font-size: 14px; vertical-align: top;
+  }
+  .emergency-table td:first-child { font-weight:700; white-space: nowrap; }
+  .emergency-table tr:last-child td { border-bottom:none; }
+
+  /* ── Server Code Block ── */
+  .code-block {
+    background: #2D3436; color: #55EFC4;
+    padding: 20px 28px; border-radius: 12px;
+    font-size: 13px; font-family: "SF Mono", "Fira Code", "Menlo", monospace;
+    line-height: 1.7; overflow-x: auto; white-space: pre-wrap;
+    margin: 12px 0;
+  }
+
+  /* ── Commit Commands ── */
+  .cmd-line {
+    background: #2D3436; color: #DFE6E9;
+    padding: 10px 18px; border-radius: 8px;
+    font-size: 13px; font-family: "SF Mono", "Fira Code", "Menlo", monospace;
+    margin: 6px 0; overflow-x: auto;
+  }
+  .cmd-line .cmd-prompt { color: #55EFC4; }
+
+  h3.section-h3 { font-size: 20px; font-weight:800; margin: 36px 0 16px; }
+  h3.section-h3:first-child { margin-top:0; }
+
+  footer {
+    background: #2D3436; color: rgba(255,255,255,0.7);
+    padding: 48px 24px; text-align: center; font-size: 14px;
+  }
+  footer .footer-brand { font-size: 18px; font-weight:800; color:#fff; margin-bottom: 8px; }
+  footer a { color: var(--accent-yellow); text-decoration:none; }
+
+  @media (max-width:768px) {
+    .page-header h1 { font-size: 30px; }
+    .tabs { gap:2px; }
+    .tabs button { padding:10px 14px; font-size:13px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ LOGIN GATE ═══ -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-card">
+    <div class="login-icon">🔐</div>
+    <h2>教师操作面板</h2>
+    <p class="login-sub">请输入密码以访问教师内容</p>
+    <input type="password" id="loginInput" placeholder="输入密码" autofocus onkeydown="if(event.key==='Enter')checkPassword()">
+    <button class="login-btn" onclick="checkPassword()">验证进入</button>
+    <div class="login-error" id="loginError">密码不正确，请重试</div>
+    <div class="login-hint">
+      默认密码：vibecoding2024<br>
+      修改方法：见页面源代码底部 PASSWORD_HASH
+    </div>
+  </div>
+</div>
+
+<!-- ═══ APP CONTENT ═══ -->
+<div id="app-content" style="display:none;">
+
+<nav>
+  <div class="nav-inner">
+    <div class="logo">Vibe Coding</div>
+    <div class="nav-links">
+      <a href="index.html">首页</a>
+      <a href="syllabus.html">课程大纲</a>
+      <a href="teacher.html" class="active">教师入口</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="badge">教师操作面板</div>
+  <h1>教师速查手册</h1>
+  <p class="sub">一次性配置 + 每课 SOP + 应急预案 — 打开这个页面就能上课</p>
+</div>
+
+<div class="container">
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="active" onclick="switchTab('setup')">一次性配置</button>
+    <button onclick="switchTab('checklists')">每课检查清单</button>
+    <button onclick="switchTab('git')">Git 存档命令</button>
+    <button onclick="switchTab('emergency')">应急预案</button>
+  </div>
+
+  <!-- ═══ TAB: SETUP ═══ -->
+  <div id="tab-setup" class="tab-content active">
+
+    <div class="alert alert-info">这些只需要做一次。所有学生共用同一个 DeepSeek API Key。</div>
+
+    <div class="setup-grid">
+      <div class="setup-card">
+        <h3><span class="sc-icon">🔑</span> DeepSeek API Key</h3>
+        <ol>
+          <li>打开 <strong>platform.deepseek.com</strong></li>
+          <li>注册 → 充值 <strong>50 元</strong>（够 50-100 个学生上 6 节课）</li>
+          <li>创建 API Key → 保存好</li>
+        </ol>
+        <div class="sc-warn">⚡ 一个 Key 全班共用。DeepSeek 没有严格并发限制，10 个学生同时发请求不会触发限流。</div>
+      </div>
+
+      <div class="setup-card">
+        <h3><span class="sc-icon">☁️</span> 腾讯云 COS</h3>
+        <ol>
+          <li>打开 <strong>console.cloud.tencent.com/cos</strong></li>
+          <li>创建 Bucket：名称 <code>vibecoding</code>，地域选最近的</li>
+          <li>访问权限：<strong>公有读私有写</strong></li>
+          <li>开启静态网站托管 → 索引文档设为 <code>index.html</code></li>
+          <li>记录访问域名</li>
+        </ol>
+        <div class="sc-warn">⚠️ 第五课需要用到。提前测试：上传一个 index.html 确认浏览器能打开。</div>
+      </div>
+
+      <div class="setup-card">
+        <h3><span class="sc-icon">📦</span> Git 班级仓库</h3>
+        <div class="cmd-line"><span class="cmd-prompt">$</span> mkdir vibe-coding-class && cd vibe-coding-class</div>
+        <div class="cmd-line"><span class="cmd-prompt">$</span> git init</div>
+        <div class="cmd-line"><span class="cmd-prompt">$</span> mkdir -p templates/initial students/ materials/</div>
+        <p style="font-size:14px; color:var(--text-light); margin-top:12px;">创建空白模板 index.html 放到 <code>templates/initial/</code>，然后 git commit。</p>
+      </div>
+
+      <div class="setup-card">
+        <h3><span class="sc-icon">🌐</span> 课堂文件服务器</h3>
+        <ol>
+          <li>在 Trae 中对 AI 描述需求（约 100 行 Node.js 代码）</li>
+          <li>保存为 <code>classroom-server.js</code></li>
+          <li>创建 <code>templates/</code> 和 <code>uploads/</code> 文件夹</li>
+          <li>每次上课前运行：<code>node classroom-server.js</code></li>
+          <li>把显示的 IP 地址写在白板上</li>
+        </ol>
+        <div class="sc-warn">⚡ 学生用浏览器访问 → 下载模板 → 课上在 Trae 改 → 下课拖拽上传。你从头到尾不用离开座位。</div>
+      </div>
+
+      <div class="setup-card">
+        <h3><span class="sc-icon">🖥️</span> 学生电脑配置</h3>
+        <ol>
+          <li>每台电脑安装 <strong>Trae</strong>（trae.ai）</li>
+          <li>设置 → 模型提供商 → 添加自定义：
+            <ul style="margin-top:4px;">
+              <li>API 地址：<code>https://api.deepseek.com/v1</code></li>
+              <li>API Key：粘贴共享 Key</li>
+              <li>默认模型：<code>deepseek-chat</code></li>
+            </ul>
+          </li>
+        </ol>
+      </div>
+
+      <div class="setup-card">
+        <h3><span class="sc-icon">🖨️</span> 第六课物料</h3>
+        <ol>
+          <li>结课证书（设计模板 → 彩色打印）</li>
+          <li>二维码卡片（每生一张）</li>
+          <li>分享海报（彩色打印）</li>
+          <li>传播之星奖状（前 3 名）</li>
+          <li>课前录好每生 15 秒游戏录屏</li>
+          <li>提前 2 天通知家长</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ TAB: CHECKLISTS ═══ -->
+  <div id="tab-checklists" class="tab-content">
+
+    <div class="alert alert-info">每节课前核对。打勾即就绪。点击每一项来标记完成/未完成。刷新页面后状态会重置——这只是速查表。</div>
+
+    <div class="check-section">
+      <h2>🔁 通用（每次上课前）</h2>
+      <div class="check-grid">
+        <div class="check-item" onclick="this.classList.toggle('done')"><span class="cb"></span><span class="clabel">U盘在包里</span></div>
+        <div class="check-item" onclick="this.classList.toggle('done')"><span class="cb"></span><span class="clabel">node classroom-server.js 启动成功</span></div>
+        <div class="check-item" onclick="this.classList.toggle('done')"><span class="cb"></span><span class="clabel">IP 地址写在白板上</span></div>
+      </div>
+    </div>
+
+    <div class="check-section">
+      <h2>📖 第一课：一句话变出一个世界</h2>
+      <div class="check-grid">
+        <div class="check-item" onclick="this.classList.toggle('done')"><span class="cb"></span><span class="clabel">所有学生电脑装了 Trae + 配好 DeepSeek</span></div>
+        <div class="check-item" onclick="this.classList.toggle('done')"><span class="cb"></span><span class="clabel">模板 index.html 在课堂服务器下载区</span></div>
+        <div class="check-item" onclick="this.classList.toggle('done')"><span class="cb"></span><span class="clabel">教师机投屏测试通过</span></div>
+        <div class="check-item" onclick="this.classList.toggle('done')"><span class="cb"></span><span class="clabel">演示游戏已部署到 COS（用于破冰扫码）</span></div>
+        <div class="check-item" onclick="this.classList.toggle('done')"><span class="cb"></span><span class="clabel">课后：学生通过网页上传 → git commit</span></div>
+      </div>
+    </div>
+
+    <div class="check-section">
+      <h2>📖 第二课：我的游戏有敌人了</h2>
+      <div class="check-grid">
+        <div class="check-item" onclick="this.classList.toggle('done')"><span class="cb"></span><span class="clabel">上节课作品在服务器下载区（丢失可重下）</span></div>
+        <div class="check-item" onclick="this.classList.toggle('done')"><span class="cb"></span><span class="clabel">教师机跑过今日 4 步 prompt</span></div>
+        <div class="check-item" onclick="this.classList.toggle('done')"><span class="cb"></span><span class="clabel">课后：学生上传 → git commit</span></div>
+      </div>
+    </div>
+
+    <div class="check-section">
+      <h2>📖 第三课：设计我的第一关</h2>
+      <div class="check-grid">
+        <div class="check-item" onclick="this.classList.toggle('done')"><span class="cb"></span><span class="clabel">A4 纸 + 彩笔到位</span></div>
+        <div class="check-item" onclick="this.classList.toggle('done')"><span class="cb"></span><span class="clabel">白板示范关卡画好</span></div>
+        <div class="check-item" onclick="this.classList.toggle('done')"><span class="cb"></span><span class="clabel">课后：学生上传 → git commit</span></div>
+      </div>
+    </div>
+
+    <div class="check-section">
+      <h2>📖 第四课：这是我的风格</h2>
+      <div class="check-grid">
+        <div class="check-item" onclick="this.classList.toggle('done')"><span class="cb"></span><span class="clabel">即梦/通义万相账号登录好</span></div>
+        <div class="check-item" onclick="this.classList.toggle('done')"><span class="cb"></span><span class="clabel">课后：学生上传 → git commit</span></div>
+      </div>
+    </div>
+
+    <div class="check-section">
+      <h2>📖 第五课：扫码就能玩（操作量最大）</h2>
+      <div class="check-grid">
+        <div class="check-item" onclick="this.classList.toggle('done')"><span class="cb"></span><span class="clabel">COS 上传脚本写好并测试通过</span></div>
+        <div class="check-item" onclick="this.classList.toggle('done')"><span class="cb"></span><span class="clabel">备选 CDN 地址准备好（bootcdn）</span></div>
+        <div class="check-item" onclick="this.classList.toggle('done')"><span class="cb"></span><span class="clabel">班级群建好</span></div>
+        <div class="check-item" onclick="this.classList.toggle('done')"><span class="cb"></span><span class="clabel">课后：确认所有 COS 链接可访问 → git commit</span></div>
+      </div>
+    </div>
+
+    <div class="check-section">
+      <h2>📖 第六课：发布会</h2>
+      <div class="check-grid">
+        <div class="check-item" onclick="this.classList.toggle('done')"><span class="cb"></span><span class="clabel">证书打印</span></div>
+        <div class="check-item" onclick="this.classList.toggle('done')"><span class="cb"></span><span class="clabel">二维码卡片打印</span></div>
+        <div class="check-item" onclick="this.classList.toggle('done')"><span class="cb"></span><span class="clabel">每生 15 秒录屏</span></div>
+        <div class="check-item" onclick="this.classList.toggle('done')"><span class="cb"></span><span class="clabel">家长通知发出（提前 2 天）</span></div>
+        <div class="check-item" onclick="this.classList.toggle('done')"><span class="cb"></span><span class="clabel">投屏切换方案确认</span></div>
+        <div class="check-item" onclick="this.classList.toggle('done')"><span class="cb"></span><span class="clabel">传播包整理（链接+海报+录屏+证书）</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ TAB: GIT ═══ -->
+  <div id="tab-git" class="tab-content">
+
+    <div class="alert alert-info">建议每节课后都 commit，这样任何学生文件丢了都能恢复。</div>
+
+    <h3 class="section-h3">初始化（一次性）</h3>
+    <div class="code-block">mkdir vibe-coding-class && cd vibe-coding-class
+git init
+mkdir -p templates/initial students/ materials/
+
+echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>我的游戏</title></head><body></body></html>' > templates/initial/index.html
+
+git add -A
+git commit -m "初始化 Vibe Coding 课程仓库"</div>
+
+    <h3 class="section-h3">每节课后存档</h3>
+    <div class="code-block"><span style="color:#636E72;"># 第一课课后</span>
+cp -r uploads/* students/lesson1/
+git add students/lesson1/
+git commit -m "第一课：所有学生产出"
+
+<span style="color:#636E72;"># 第二课课后</span>
+cp -r uploads/* students/lesson2/
+git add students/lesson2/
+git commit -m "第二课：敌人+金币+生命系统"
+
+<span style="color:#636E72;"># 第三课课后</span>
+cp -r uploads/* students/lesson3/
+git add students/lesson3/
+git commit -m "第三课：关卡设计+卷轴+通关画面"
+
+<span style="color:#636E72;"># 第四课课后</span>
+cp -r uploads/* students/lesson4/
+git add students/lesson4/
+git commit -m "第四课：个人美术素材+开始画面"
+
+<span style="color:#636E72;"># 第五课课后</span>
+cp -r uploads/* students/lesson5/
+git add students/lesson5/
+git commit -m "第五课：部署链接+二维码+分享海报"
+
+<span style="color:#636E72;"># 第六课课后</span>
+git add students/lesson6/ materials/certificates/
+git commit -m "第六课：发布会+结营存档"</div>
+
+    <h3 class="section-h3">恢复学生丢失的文件</h3>
+    <div class="code-block">git checkout HEAD~1 -- students/lesson2/学生姓名/</div>
+    <p style="font-size:14px; color:var(--text-light); margin-top:8px;">把恢复的文件放到课堂服务器 templates 下，让学生重新下载。</p>
+
+  </div>
+
+  <!-- ═══ TAB: EMERGENCY ═══ -->
+  <div id="tab-emergency" class="tab-content">
+
+    <div class="alert alert-warn">预案的价值在于提前读过。上课遇到问题，Ctrl+F 搜这个页面。</div>
+
+    <table class="emergency-table">
+      <thead>
+        <tr><th>问题</th><th>处理</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>WiFi 挂了</td>
+          <td>掏 U盘（永远装在包里）。拷模板到学生桌面。如果外网也断 → 进入"离线模式"：学生打开上节课 HTML 用浏览器试玩、互玩，或者在 Trae 里手动改 HTML 参数。</td>
+        </tr>
+        <tr>
+          <td>课堂服务器启动失败</td>
+          <td><code>lsof -i :3000</code> 检查端口占用，有就 kill 掉。不行就 <code>brew install node</code>。实在跑不起来 → 切 U盘方案，下节课再修。</td>
+        </tr>
+        <tr>
+          <td>DeepSeek API 挂了</td>
+          <td>先查 <strong>status.deepseek.com</strong>。备选：通义千问 API（dashscope.aliyun.com），在 Trae 改模型为 <code>qwen-turbo</code>。</td>
+        </tr>
+        <tr>
+          <td>学生把文件全删了</td>
+          <td>从 Git 仓库恢复上节课版本 → 放到服务器让学生重下。</td>
+        </tr>
+        <tr>
+          <td>Trae 崩溃/闪退</td>
+          <td>重启 Trae（有自动保存）。项目打不开就新建空白项目，把 index.html 拖进去继续。</td>
+        </tr>
+        <tr>
+          <td>生成的代码打不开</td>
+          <td>让学生清空 Trae 对话，重新发一模一样的 prompt。第二次通常就对了。</td>
+        </tr>
+        <tr>
+          <td>加完敌人游戏卡死了</td>
+          <td>通常是碰撞检测写了死循环。让学生把代码 + 报错一起贴给 AI。</td>
+        </tr>
+        <tr>
+          <td>加了多个功能后互相冲突</td>
+          <td>回退到上一个能跑的版本（另存为的 _v1、_v2），从那里重新加。</td>
+        </tr>
+        <tr>
+          <td>游戏越来越慢</td>
+          <td>新开一个对话，把 index.html 内容贴进去，说"帮我优化帧率到 60fps"。</td>
+        </tr>
+        <tr>
+          <td>COS 上传后链接打不开</td>
+          <td>检查文件是否设为公有读：COS 控制台 → 文件详情 → 权限 → 公有读。</td>
+        </tr>
+        <tr>
+          <td>二维码扫了打不开</td>
+          <td>先把链接贴到浏览器地址栏测试，确认能打开再生成二维码。</td>
+        </tr>
+        <tr>
+          <td>jsdelivr CDN 加载失败</td>
+          <td>换 bootcdn：<code>https://cdn.bootcdn.net/ajax/libs/qrcodejs/1.0.0/qrcode.min.js</code></td>
+        </tr>
+        <tr>
+          <td>学生不会打字</td>
+          <td>让同桌帮忙打，或用 macOS 自带听写（语音输入转文字）。</td>
+        </tr>
+        <tr>
+          <td>某学生一直跑不起来，开始焦躁</td>
+          <td>不要再让他试 prompt。把你的演示文件复制给他，让他改背景色、改小人的话开始。重点是让他有"这东西是我的"的感觉。</td>
+        </tr>
+        <tr>
+          <td>学生被别的窗口分心</td>
+          <td>不要训斥。走到旁边问"你的游戏现在能玩吗？给我看看。"把注意力拉回来。跑起来了就让他自由迭代。</td>
+        </tr>
+        <tr>
+          <td>学生上台不敢说话</td>
+          <td>不要逼。让他就做一件事：投屏二维码，说"这是《XX》，大家扫码玩。"</td>
+        </tr>
+        <tr>
+          <td>画的关卡太复杂，AI 做不出来</td>
+          <td>让他先做"简化版"：只有地面 + 1个平台 + 1个坑 + 旗子。其他的以后再改。</td>
+        </tr>
+        <tr>
+          <td>生图花了太久，没时间替换素材</td>
+          <td>让他先替换主角，地面和背景下节课再说。先保证每个人都有可展示的东西。</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<footer>
+  <div class="footer-brand">Vibe Coding</div>
+  <p>教师操作面板 v1.0 · <a href="index.html">返回首页</a> · <a href="syllabus.html">课程大纲</a></p>
+</footer>
+
+</div><!-- #app-content -->
+
+<script>
+// ═══ AUTH ═══
+// 修改密码：在终端运行 printf '你的新密码' | shasum -a 256，把输出的 hash 替换下面这行
+const PASSWORD_HASH = '6cdeb1eae3c46d57d998f10492934547c32531c98146dcda6d4c13a07c14d579';
+
+async function hashPassword(pw) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(pw);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function checkPassword() {
+  const input = document.getElementById('loginInput').value;
+  if (!input) return;
+  const inputHash = await hashPassword(input);
+  if (inputHash === PASSWORD_HASH) {
+    sessionStorage.setItem('teacher_authed', '1');
+    document.getElementById('loginOverlay').classList.add('hidden');
+    document.getElementById('app-content').style.display = '';
+  } else {
+    const err = document.getElementById('loginError');
+    err.classList.add('show');
+    document.getElementById('loginInput').value = '';
+    setTimeout(() => err.classList.remove('show'), 2500);
+  }
+}
+
+// Check if already authed this session
+if (sessionStorage.getItem('teacher_authed') === '1') {
+  document.getElementById('loginOverlay').classList.add('hidden');
+  document.getElementById('app-content').style.display = '';
+}
+
+// ═══ TABS ═══
+function switchTab(name) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tabs button').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.querySelector(`.tabs button[onclick="switchTab('${name}')"]`).classList.add('active');
+}
+</script>
+
+</body>
+</html>

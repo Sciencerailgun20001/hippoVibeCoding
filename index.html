@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vibe Coding — 不写代码，AI 替你造游戏</title>
+<style>
+  :root {
+    --primary: #6C5CE7;
+    --primary-dark: #5A4BD1;
+    --accent: #FF6B6B;
+    --accent-yellow: #FFD93D;
+    --bg: #F8F9FF;
+    --card: #FFFFFF;
+    --text: #2D3436;
+    --text-light: #636E72;
+    --radius: 16px;
+    --shadow: 0 4px 24px rgba(108,92,231,0.10);
+    --shadow-lg: 0 12px 48px rgba(108,92,231,0.12);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  /* ── Nav ── */
+  nav {
+    position: sticky; top:0; z-index:100;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(108,92,231,0.08);
+    padding: 0 24px;
+  }
+  nav .nav-inner {
+    max-width: 1200px; margin:0 auto;
+    display:flex; align-items:center; justify-content:space-between;
+    height: 64px;
+  }
+  nav .logo {
+    font-size: 22px; font-weight:800;
+    background: linear-gradient(135deg, var(--primary), #A29BFE);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+  nav .nav-links { display:flex; gap:8px; }
+  nav .nav-links a {
+    text-decoration:none; color: var(--text);
+    padding: 8px 18px; border-radius: 10px;
+    font-size: 15px; font-weight: 500;
+    transition: all 0.2s;
+  }
+  nav .nav-links a:hover { background: rgba(108,92,231,0.06); color: var(--primary); }
+  nav .nav-cta {
+    background: var(--primary) !important; color: #fff !important;
+    font-weight:600 !important;
+  }
+  nav .nav-cta:hover { background: var(--primary-dark) !important; color: #fff !important; }
+
+  /* ── Hero ── */
+  .hero {
+    max-width: 1200px; margin: 0 auto;
+    padding: 80px 24px 60px;
+    text-align: center;
+  }
+  .hero .badge {
+    display:inline-block;
+    background: rgba(108,92,231,0.08);
+    color: var(--primary);
+    font-size: 14px; font-weight:600;
+    padding: 6px 18px; border-radius: 100px;
+    margin-bottom: 24px;
+    letter-spacing: 0.5px;
+  }
+  .hero h1 {
+    font-size: 52px; font-weight:900;
+    line-height: 1.2; letter-spacing: -1px;
+    margin-bottom: 24px;
+  }
+  .hero h1 .hl {
+    background: linear-gradient(135deg, var(--primary), #A29BFE);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .hero .subtitle {
+    font-size: 20px; color: var(--text-light);
+    max-width: 600px; margin: 0 auto 40px;
+  }
+  .hero .hero-actions { display:flex; gap:16px; justify-content:center; flex-wrap:wrap; }
+  .btn {
+    display:inline-block;
+    padding: 14px 36px; border-radius: 14px;
+    font-size: 17px; font-weight:700;
+    text-decoration:none;
+    transition: all 0.25s;
+    cursor: pointer;
+    border: none;
+  }
+  .btn-primary {
+    background: var(--primary); color:#fff;
+    box-shadow: 0 8px 28px rgba(108,92,231,0.28);
+  }
+  .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+  .btn-outline {
+    background: #fff; color: var(--primary);
+    border: 2px solid rgba(108,92,231,0.15);
+  }
+  .btn-outline:hover { border-color: var(--primary); }
+
+  /* ── Sections ── */
+  section { padding: 80px 24px; }
+  .section-inner { max-width: 1200px; margin:0 auto; }
+  .section-label {
+    font-size: 13px; font-weight:700; text-transform: uppercase;
+    letter-spacing: 2px; color: var(--primary); margin-bottom: 12px;
+  }
+  .section-title {
+    font-size: 36px; font-weight:900;
+    letter-spacing: -0.5px; margin-bottom: 16px;
+  }
+  .section-desc {
+    font-size: 18px; color: var(--text-light);
+    max-width: 600px; margin-bottom: 48px;
+  }
+
+  /* ── Comparison Table ── */
+  .compare-grid {
+    display:grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 1px; background: #E8E8F0;
+    border-radius: var(--radius); overflow:hidden;
+    box-shadow: var(--shadow);
+  }
+  .compare-grid .cg-header {
+    background: var(--primary); color:#fff;
+    padding: 20px 28px; font-weight:700; font-size: 16px;
+  }
+  .compare-grid .cg-header:first-child { background: #636E72; }
+  .compare-grid .cg-cell {
+    background: #fff; padding: 16px 28px; font-size: 15px;
+  }
+  .compare-grid .cg-cell.check { color: #00B894; font-weight:600; }
+  .compare-grid .cg-cell.cross { color: #B2BEC3; }
+
+  /* ── Lesson Cards ── */
+  .lessons-grid {
+    display:grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 24px;
+  }
+  .lesson-card {
+    background: var(--card); border-radius: var(--radius);
+    padding: 32px; box-shadow: var(--shadow);
+    border: 1px solid rgba(108,92,231,0.06);
+    transition: all 0.3s;
+    position: relative; overflow:hidden;
+  }
+  .lesson-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+  .lesson-card .lc-num {
+    font-size: 56px; font-weight:900;
+    position: absolute; top: 16px; right: 24px;
+    color: rgba(108,92,231,0.06);
+    line-height: 1;
+  }
+  .lesson-card h3 { font-size: 20px; font-weight:800; margin-bottom: 8px; }
+  .lesson-card .lc-goal { color: var(--primary); font-size: 14px; font-weight:600; margin-bottom: 12px; }
+  .lesson-card .lc-output {
+    font-size: 14px; color: var(--text-light);
+    padding: 12px 16px; background: rgba(108,92,231,0.04);
+    border-radius: 10px;
+  }
+  .lesson-card .lc-output strong { color: var(--text); }
+
+  /* ── Value Props ── */
+  .values-grid {
+    display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 24px;
+  }
+  .value-card {
+    background: var(--card); border-radius: var(--radius);
+    padding: 32px; box-shadow: var(--shadow);
+    border: 1px solid rgba(108,92,231,0.06);
+    text-align: center;
+  }
+  .value-card .vc-icon {
+    font-size: 40px; margin-bottom: 16px; display:block;
+  }
+  .value-card h3 { font-size: 18px; font-weight:800; margin-bottom: 8px; }
+  .value-card p { font-size: 15px; color: var(--text-light); }
+
+  /* ── FAQ ── */
+  .faq-list { display:flex; flex-direction:column; gap:16px; }
+  .faq-item {
+    background: var(--card); border-radius: var(--radius);
+    padding: 24px 32px; box-shadow: var(--shadow);
+    border: 1px solid rgba(108,92,231,0.06);
+    cursor: pointer;
+  }
+  .faq-item:hover { border-color: rgba(108,92,231,0.15); }
+  .faq-item .faq-q { font-size: 17px; font-weight:700; margin-bottom: 4px; }
+  .faq-item .faq-a { font-size: 15px; color: var(--text-light); }
+
+  /* ── Flywheel ── */
+  .flywheel { text-align:center; padding: 48px; background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .flywheel .fw-steps { display:flex; align-items:center; justify-content:center; gap:24px; flex-wrap:wrap; }
+  .flywheel .fw-step {
+    padding: 16px 24px; background: rgba(108,92,231,0.06);
+    border-radius: 12px; font-weight:700; font-size: 15px;
+  }
+  .flywheel .fw-arrow { font-size: 24px; color: var(--primary); }
+
+  /* ── Footer ── */
+  footer {
+    background: #2D3436; color: rgba(255,255,255,0.7);
+    padding: 48px 24px; text-align: center; font-size: 14px;
+  }
+  footer .footer-brand {
+    font-size: 18px; font-weight:800; color:#fff; margin-bottom: 8px;
+  }
+  footer a { color: var(--accent-yellow); text-decoration:none; }
+
+  /* ── QR Modal ── */
+  .qr-modal {
+    display:none; position:fixed; inset:0;
+    background: rgba(0,0,0,0.55);
+    z-index: 200;
+    align-items:center; justify-content:center;
+  }
+  .qr-modal.open { display:flex; }
+  .qr-modal .qm-card {
+    background: #fff; border-radius: 20px;
+    padding: 40px 36px 32px; text-align:center;
+    max-width: 380px; width: 90%;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.25);
+    animation: qmIn 0.3s ease;
+  }
+  @keyframes qmIn { from { opacity:0; transform:translateY(20px) scale(0.95); } to { opacity:1; transform:translateY(0) scale(1); } }
+  .qr-modal .qm-card .qm-qr-img {
+    width: 220px; height: 220px; margin: 0 auto 20px;
+    border-radius: 14px; border: 2px solid #eee;
+    object-fit: contain;
+    background: #F8F9FF;
+  }
+  .qr-modal .qm-card .qm-qr-placeholder {
+    width: 220px; height: 220px; margin: 0 auto 20px;
+    border-radius: 14px; border: 2px dashed #B2BEC3;
+    display:flex; align-items:center; justify-content:center;
+    font-size: 14px; color: #B2BEC3; background: #F8F9FF;
+    flex-direction:column; gap:8px;
+  }
+  .qr-modal .qm-card h3 { font-size: 20px; font-weight:800; margin-bottom: 4px; color: var(--text); }
+  .qr-modal .qm-card .qm-sub { font-size: 14px; color: var(--text-light); margin-bottom: 20px; }
+  .qr-modal .qm-card .qm-note {
+    font-size: 13px; color: var(--text-light);
+    padding: 10px 16px; background: rgba(108,92,231,0.05);
+    border-radius: 10px; margin-bottom: 20px;
+  }
+  .qm-close {
+    padding: 10px 32px; border-radius: 10px;
+    background: #eee; border:none; font-size: 14px;
+    font-weight:600; cursor: pointer; font-family: inherit;
+    color: var(--text);
+  }
+  .qm-close:hover { background: #ddd; }
+
+  /* ── Responsive ── */
+  @media (max-width:768px) {
+    .hero h1 { font-size: 32px; }
+    .section-title { font-size: 28px; }
+    .compare-grid { grid-template-columns: 1fr; }
+    .compare-grid .cg-header { display:none; }
+    .compare-grid .cg-cell::before { content: attr(data-label); font-weight:700; display:block; font-size:12px; color:var(--text-light); margin-bottom:4px; }
+    .lessons-grid { grid-template-columns: 1fr; }
+    nav .nav-links a { padding:6px 12px; font-size:14px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ NAV ═══ -->
+<nav>
+  <div class="nav-inner">
+    <div class="logo">Vibe Coding</div>
+    <div class="nav-links">
+      <a href="index.html">首页</a>
+      <a href="syllabus.html">课程大纲</a>
+      <a href="teacher.html">教师入口</a>
+      <a href="#cta" class="nav-cta">预约体验</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="badge">AI 时代的第一堂创作课 · 面向 7–10 岁</div>
+  <h1>不写一行代码<br><span class="hl">AI 替你造游戏</span></h1>
+  <p class="subtitle">孩子说话，AI 写代码。6 次课做出一个能扫码分享的超级玛丽。每个孩子都是 Vibe Coding 的行走广告牌。</p>
+  <div class="hero-actions">
+    <a href="syllabus.html" class="btn btn-primary">查看课程大纲</a>
+    <a href="#compare" class="btn btn-outline">和传统编程课有什么区别？</a>
+  </div>
+</section>
+
+<!-- ═══ COMPARISON ═══ -->
+<section id="compare" style="background:#fff;">
+  <div class="section-inner">
+    <div class="section-label">本质区别</div>
+    <h2 class="section-title">不是"学编程"，是"用 AI 造东西"</h2>
+    <p class="section-desc">Vibe Coding 和传统编程课的根本不同——孩子不需要理解代码，只需要说清楚想要什么。</p>
+
+    <div class="compare-grid">
+      <div class="cg-header"></div>
+      <div class="cg-header">传统编程课</div>
+      <div class="cg-header" style="background:var(--primary);">Vibe Coding</div>
+
+      <div class="cg-cell" data-label=""></div>
+      <div class="cg-cell" data-label="传统编程课">孩子学语法、记 API</div>
+      <div class="cg-cell check" data-label="Vibe Coding">孩子说中文，AI 写代码 ✓</div>
+
+      <div class="cg-cell" data-label=""></div>
+      <div class="cg-cell" data-label="传统编程课">打字速度是瓶颈</div>
+      <div class="cg-cell check" data-label="Vibe Coding">表达能力是天花板 ✓</div>
+
+      <div class="cg-cell" data-label=""></div>
+      <div class="cg-cell" data-label="传统编程课">做一个作品要一学期</div>
+      <div class="cg-cell check" data-label="Vibe Coding">第一节课就有可玩的雏形 ✓</div>
+
+      <div class="cg-cell" data-label=""></div>
+      <div class="cg-cell" data-label="传统编程课">作品留在教室电脑里</div>
+      <div class="cg-cell check" data-label="Vibe Coding">作品是手机上的一个永久链接 ✓</div>
+
+      <div class="cg-cell" data-label=""></div>
+      <div class="cg-cell" data-label="传统编程课">家长看到"孩子在学技能"</div>
+      <div class="cg-cell check" data-label="Vibe Coding">家长看到"孩子做了个游戏我能玩" ✓</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ VALUE PROPS ═══ -->
+<section>
+  <div class="section-inner">
+    <div class="section-label">四大核心卖点</div>
+    <h2 class="section-title">为什么家长选 Vibe Coding</h2>
+    <p class="section-desc">不是教写代码，是教孩子跟 AI 协作——这是任何学科、任何职业都需要的能力。</p>
+
+    <div class="values-grid">
+      <div class="value-card">
+        <span class="vc-icon">🎤</span>
+        <h3>零代码，全靠说话</h3>
+        <p>孩子不需要写一行代码。对着 AI 说中文，AI 把代码全写了。会说话就会做游戏，打字慢可以语音输入。</p>
+      </div>
+      <div class="value-card">
+        <span class="vc-icon">⚡</span>
+        <h3>第一节就出作品</h3>
+        <p>第一节课结束，每个孩子都有一个能跑能跳的游戏。不是一学期做一个计算器——当天就能玩。</p>
+      </div>
+      <div class="value-card">
+        <span class="vc-icon">📱</span>
+        <h3>扫码就能分享</h3>
+        <p>永久链接 + 二维码，手机点开就能玩。孩子做出游戏，爸妈、爷爷奶奶、同学全都能扫码玩。</p>
+      </div>
+      <div class="value-card">
+        <span class="vc-icon">🧠</span>
+        <h3>学的是 AI 协作</h3>
+        <p>5 年后不会用 AI 的人 = 今天不会用搜索引擎的人。越早建立"AI 是工具"的认知，越早建立优势。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ LESSONS OVERVIEW ═══ -->
+<section style="background:#fff;">
+  <div class="section-inner">
+    <div class="section-label">6 次课 × 90 分钟</div>
+    <h2 class="section-title">从零到能扫码分享的超级玛丽</h2>
+    <p class="section-desc">每节课都有看得见摸得着的产出。不是"学到了什么"，是"做出了什么"。</p>
+
+    <div class="lessons-grid">
+      <div class="lesson-card">
+        <div class="lc-num">01</div>
+        <h3>一句话变出一个世界</h3>
+        <div class="lc-goal">建立核心认知："我跟 AI 说话，AI 就能做游戏"</div>
+        <div class="lc-output"><strong>产出：</strong>能在浏览器里跑、能走能跳的个人化小游戏</div>
+      </div>
+      <div class="lesson-card">
+        <div class="lc-num">02</div>
+        <h3>我的游戏有敌人了</h3>
+        <div class="lc-goal">学会"一次加一个功能"的对话节奏</div>
+        <div class="lc-output"><strong>产出：</strong>有蘑菇敌人 + 金币 + 生命系统 + Game Over</div>
+      </div>
+      <div class="lesson-card">
+        <div class="lc-num">03</div>
+        <h3>设计我的第一关</h3>
+        <div class="lc-goal">从"东西散落"到"有起点、有推进、有通关"</div>
+        <div class="lc-output"><strong>产出：</strong>有关卡结构 + 卷轴 + You Win 画面 + 分享按钮</div>
+      </div>
+      <div class="lesson-card">
+        <div class="lc-num">04</div>
+        <h3>这是我的风格</h3>
+        <div class="lc-goal">用 AI 生图制作全套个人美术素材</div>
+        <div class="lc-output"><strong>产出：</strong>6 张定制素材 + 个人风格游戏 + 标题画面</div>
+      </div>
+      <div class="lesson-card">
+        <div class="lc-num">05</div>
+        <h3>扫码就能玩</h3>
+        <div class="lc-goal">把 HTML 变成永久链接 + 分享海报</div>
+        <div class="lc-output"><strong>产出：</strong>永久游戏链接 + 二维码 + 品牌分享海报</div>
+      </div>
+      <div class="lesson-card">
+        <div class="lc-num">06</div>
+        <h3>发布会 + 上架了</h3>
+        <div class="lc-goal">仪式感收尾——上台展示、颁发证书</div>
+        <div class="lc-output"><strong>产出：</strong>传播包（链接 + 海报 + 录屏）+ 结课证书</div>
+      </div>
+    </div>
+
+    <div style="text-align:center; margin-top:40px;">
+      <a href="syllabus.html" class="btn btn-primary">查看完整大纲 →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FLYWHEEL ═══ -->
+<section>
+  <div class="section-inner">
+    <div class="section-label">品牌传播</div>
+    <h2 class="section-title">每个孩子都是品牌大使</h2>
+    <p class="section-desc">每 10 个学员，每人分享给 20 个人，就是 200 次品牌触达。续费不是销售打出来的，是孩子炫耀出来的。</p>
+
+    <div class="flywheel">
+      <div class="fw-steps">
+        <div class="fw-step">🎮 孩子做游戏</div>
+        <div class="fw-arrow">→</div>
+        <div class="fw-step">📱 扫码分享</div>
+        <div class="fw-arrow">→</div>
+        <div class="fw-step">👨‍👩‍👧 同学/亲戚玩</div>
+        <div class="fw-arrow">→</div>
+        <div class="fw-step">❓ "在哪学的？"</div>
+        <div class="fw-arrow">→</div>
+        <div class="fw-step">✨ 新学员报名</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FAQ ═══ -->
+<section style="background:#fff;">
+  <div class="section-inner">
+    <div class="section-label">常见问题</div>
+    <h2 class="section-title">家长最常问的</h2>
+    <div class="faq-list">
+      <div class="faq-item">
+        <div class="faq-q">真的不用写代码？那学什么？</div>
+        <div class="faq-a">孩子学的是跟 AI 合作的能力——怎么把脑子里的想法说清楚、怎么看到结果后调整方向、怎么把一个想法变成一个完整的作品。代码是 AI 写的，但创意和决策是孩子的。</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">6 节课真能做出超级玛丽？</div>
+        <div class="faq-a">能。不是商业级游戏，是一个有角色、有敌人、有金币、有通关画面、手机扫码能玩的完整小游戏。对一个 7–10 岁的孩子来说，足够震撼。</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">需要什么设备？</div>
+        <div class="faq-a">一台能上网的电脑就行。不需要安装任何软件（课上会统一安装 Trae），浏览器打开就能用。</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">和 Scratch 有什么区别？</div>
+        <div class="faq-a">Scratch 是"积木式编程"——孩子还是要理解编程逻辑，拖拉积木。Vibe Coding 是"对话式创作"——孩子说中文，AI 出结果。Scratch 做小动画要几节课，Vibe Coding 第一节课出游戏。Scratch 作品只能在 Scratch 网站分享，Vibe Coding 作品是独立链接，手机扫码就能玩。</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">怎么保证孩子不是在"抄"？</div>
+        <div class="faq-a">每个孩子的游戏都不一样——主角不一样、敌人不一样、关卡设计不一样、画风不一样。AI 只是工具，同一支画笔在不同孩子手里画出不同的画。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CTA ═══ -->
+<section id="cta" style="background:linear-gradient(135deg, var(--primary), #A29BFE); color:#fff; text-align:center;">
+  <div class="section-inner">
+    <h2 style="font-size:36px; font-weight:900; margin-bottom:16px;">让孩子做第一个游戏</h2>
+    <p style="font-size:18px; opacity:0.9; margin-bottom:32px; max-width:500px; margin-left:auto; margin-right:auto;">
+      40 分钟体验课，孩子能带走一个自己做的、手机扫码就能玩的小游戏。全程零基础，会说话就行。
+    </p>
+    <a href="javascript:void(0)" onclick="openContactQR()" style="display:inline-block; padding:16px 48px; background:#fff; color:var(--primary); border-radius:14px; font-size:18px; font-weight:700; text-decoration:none; box-shadow:0 8px 28px rgba(0,0,0,0.15); cursor:pointer;">预约体验课</a>
+  </div>
+</section>
+
+<!-- ═══ QR CONTACT MODAL ═══ -->
+<div class="qr-modal" id="contactQRModal" onclick="closeContactQR(event)">
+  <div class="qm-card" onclick="event.stopPropagation()">
+    <!-- 二维码图片：把 qrcode-contact.png 上传到网站同目录下即可自动显示 -->
+    <img
+      class="qm-qr-img"
+      id="contactQRImg"
+      src="qrcode-contact.png"
+      alt="预约体验课二维码"
+      onerror="this.style.display='none'; document.getElementById('contactQRPlaceholder').style.display='flex';"
+    >
+    <div class="qm-qr-placeholder" id="contactQRPlaceholder" style="display:none;">
+      <span style="font-size:36px;">📷</span>
+      <span>二维码占位</span>
+      <span style="font-size:12px;">上传 qrcode-contact.png 到网站目录</span>
+    </div>
+    <h3>预约体验课</h3>
+    <p class="qm-sub">扫码添加老师微信，预约免费体验</p>
+    <div class="qm-note">40 分钟体验课 · 孩子能带走一个自己做的游戏 · 全程零基础</div>
+    <button class="qm-close" onclick="document.getElementById('contactQRModal').classList.remove('open')">关闭</button>
+  </div>
+</div>
+
+<!-- ═══ FOOTER ═══ -->
+<footer>
+  <div class="footer-brand">Vibe Coding</div>
+  <p>AI 时代的第一堂创作课 — 不写一行代码，AI 替你造游戏</p>
+  <p style="margin-top:12px;">Made with Vibe Coding · <a href="teacher.html">教师入口</a></p>
+</footer>
+
+<script>
+function openContactQR() {
+  document.getElementById('contactQRModal').classList.add('open');
+}
+function closeContactQR(e) {
+  if (e.target === document.getElementById('contactQRModal')) {
+    document.getElementById('contactQRModal').classList.remove('open');
+  }
+}
+// ESC 关闭
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    document.getElementById('contactQRModal').classList.remove('open');
+  }
+});
+</script>
+
+</body>
+</html>

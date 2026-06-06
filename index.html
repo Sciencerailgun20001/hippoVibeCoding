@@ -126,7 +126,7 @@
 
   /* ── Comparison Table ── */
   .compare-grid {
-    display:grid; grid-template-columns: 1fr 1fr;
+    display:grid; grid-template-columns: 1fr 1fr 1fr;
     gap: 1px; background: #E8E8F0;
     border-radius: var(--radius); overflow:hidden;
     box-shadow: var(--shadow);
@@ -309,21 +309,27 @@
     <p class="section-desc">Vibe Coding 和传统编程课的根本不同——孩子不需要理解代码，只需要说清楚想要什么。</p>
 
     <div class="compare-grid">
+      <div class="cg-header" style="background:#636E72;">对比维度</div>
       <div class="cg-header">传统编程课</div>
       <div class="cg-header" style="background:var(--primary);">Vibe Coding</div>
 
+      <div class="cg-cell">学习方式</div>
       <div class="cg-cell" data-label="传统编程课">孩子学语法、记 API</div>
       <div class="cg-cell check" data-label="Vibe Coding">孩子说中文，AI 写代码 ✓</div>
 
+      <div class="cg-cell">核心能力</div>
       <div class="cg-cell" data-label="传统编程课">打字速度是瓶颈</div>
       <div class="cg-cell check" data-label="Vibe Coding">表达能力是天花板 ✓</div>
 
+      <div class="cg-cell">出作品速度</div>
       <div class="cg-cell" data-label="传统编程课">做一个作品要一学期</div>
       <div class="cg-cell check" data-label="Vibe Coding">第一节课就有可玩的雏形 ✓</div>
 
+      <div class="cg-cell">作品可及性</div>
       <div class="cg-cell" data-label="传统编程课">作品留在教室电脑里</div>
       <div class="cg-cell check" data-label="Vibe Coding">作品是手机上的一个永久链接 ✓</div>
 
+      <div class="cg-cell">家长感知</div>
       <div class="cg-cell" data-label="传统编程课">家长看到"孩子在学技能"</div>
       <div class="cg-cell check" data-label="Vibe Coding">家长看到"孩子做了个游戏我能玩" ✓</div>
     </div>
